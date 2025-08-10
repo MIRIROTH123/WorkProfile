@@ -37,10 +37,8 @@ def add():
         return db_add(person)
     app.logger.error("Request body is empty")
     return Response(status=404)
-@app.route("/health")
-def health():
-    return {"status": "healthy"}, 200
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000
+)
