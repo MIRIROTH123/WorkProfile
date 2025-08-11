@@ -1,0 +1,45 @@
+name: WorkProfile CI
+# שם הפייפליין שיופיע ב-GitHub Actions
+
+on:
+  push:
+    branches:
+      - main
+      - multi-stage
+# מגדיר שהפייפליין יופעל בכל דחיפה (push) לענפים main ו-multi-stage
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+# מגדיר עבודה (job) שרצה על מכונה וירטואלית עם מערכת הפעלה Ubuntu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+# הורדת הקוד מהרפוזיטורי לסביבת הריצה של ה־Actions
+
+      - name: Build Docker image
+        run: docker build -t workprofile:latest .
+# בונה את התמונה של Docker מהקובץ Dockerfile בתיקיית העבודה הנוכחית
+
+      - name: Run container in background
+        run: docker run -d --name workprofile_test -p 8080:5000 workprofile:latest
+# מריץ את הקונטיינר ברקע ומחשף פורט 8080 (מפה ל־5000 בקונטיינר)
+
+      - name: Wait for app to start
+        run: sleep 15
+# מחכה 15 שניות כדי לתת לאפליקציה לעלות ולהתייצב
+
+      - name: Test root endpoint
+        run: curl --fail http://localhost:8080/
+# שולח בקשה ל־/ לוודא שהאפליקציה מגיבה
+
+      - name: Test health endpoint
+        run: curl --fail http://localhost:8080/health
+# שולח בקשה ל־/health לוודא שנקודת הבריאות קיימת ופועלת
+
+      - name: Stop and remove container
+        run: |
+          docker stop workprofile_test
+          docker rm workprofile_test
+# עוצר ומסיר את הקונטיינר בסיום הבדיקות
