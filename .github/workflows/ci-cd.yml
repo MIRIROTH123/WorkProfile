@@ -22,13 +22,13 @@ jobs:
           password: ${{ secrets.CR_PAT }}
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/workprofile:latest .
+        run: docker build -t ghcr.io/miriroth123/workprofile:latest .
 
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository_owner }}/workprofile:latest
+        run: docker push ghcr.io/miriroth123/workprofile:latest
 
       - name: Run container in background
-        run: docker run -d --name workprofile_test -p 8080:5000 ghcr.io/${{ github.repository_owner }}/workprofile:latest
+        run: docker run -d --name workprofile_test -p 8080:5000 ghcr.io/miriroth123/workprofile:latest
 
       - name: Wait for app to start
         run: sleep 15
