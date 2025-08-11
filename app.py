@@ -37,6 +37,11 @@ def add():
         return db_add(person)
     app.logger.error("Request body is empty")
     return Response(status=404)
+    
+@app.route("/health")
+def health():
+    return "OK", 200
+
 
 
 if __name__ == "__main__":
