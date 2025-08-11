@@ -1,40 +1,35 @@
-# שלב 1: בניית סביבה עם כל התלויות
-FROM python:3.9-slim AS build
+FROM python:3.9-slim AS builder
 
-# תיקיית עבודה
-WORKDIR /app
-
-# התקנת כלים נדרשים להרכבת חבילות (אם יש)
+# התקנת כל התלויות הדרושות לבנייה
 RUN apt-get update && apt-get install -y \
     build-essential \
-    default-libmysqlclient-dev \
     pkg-config \
- && rm -rf /var/lib/apt/lists/*
+    default-libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# העתקת קובץ הדרישות
-COPY requirements.txt .
-
-# התקנת חבילות Python לתיקייה במערכת הקבצים (בברירת מחדל /usr/local)
-RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
-
-# שלב 2: סביבה קטנה להרצת האפליקציה בלבד
-FROM python:3.9-alpine
-
-# תיקיית עבודה
 WORKDIR /app
 
-# העתקת החבילות שהותקנו בשלב הקודם
-COPY --from=build /install /usr/local
+COPY requirements.txt .
 
-# העתקת קבצי האפליקציה
-COPY static ./static
-COPY templates ./templates
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY static/ ./static/
+COPY templates/ ./templates/
 COPY app.py .
 COPY dbcontext.py .
 COPY person.py .
 
-# חשיפת הפורט שהאפליקציה מאזינה עליו (5000)
-EXPOSE 5000
+# שלב הריצה - תמונה קטנה מבוססת Alpine
+FROM python:3.9-alpine
 
-# פקודת ההרצה
+WORKDIR /app
+
+# מעתיק את ספריות הפייתון שהותקנו בשלב הבנייה
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+
+# מעתיק את כל הקבצים שהועתקו בשלב הבנייה
+COPY --from=builder /app /app
+
+EXPOSE 8080
+
 CMD ["python", "app.py"]
