@@ -23,7 +23,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.CR_PAT }}
 
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME:latest .
@@ -48,4 +48,3 @@ jobs:
       - name: Push Docker image to GitHub Container Registry
         if: success()
         run: docker push $IMAGE_NAME:latest
-
