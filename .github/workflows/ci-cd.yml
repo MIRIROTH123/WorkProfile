@@ -1,4 +1,3 @@
----
 name: WorkProfile CI/CD
 
 on:
@@ -11,6 +10,9 @@ on:
       - main
 
 jobs:
+  # -------------------------
+  # Stage 1: Validation
+  # -------------------------
   validation:
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +38,9 @@ jobs:
           python3 -c "import flask; print('✓ Flask import successful')"
           python3 -c "import mysql.connector; print('✓ MySQL connector import successful')"
 
+  # -------------------------
+  # Stage 2: Build & Single Container Test
+  # -------------------------
   build-test-publish:
     needs: validation
     runs-on: ubuntu-latest
@@ -53,19 +58,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.CR_PAT }}
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            -t $IMAGE_NAME:latest \
-            -t $IMAGE_NAME:$IMAGE_TAG \
-            .
+      - name: Build Docker image with tags
+        run: docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:$IMAGE_TAG .
 
-      - name: Run container
-        run: |
-          docker run -d \
-            -p 8080:5000 \
-            --name workprofile_test \
-            $IMAGE_NAME:latest
+      - name: Run container in detached mode
+        run: docker run -d -p 8080:5000 --name workprofile_test $IMAGE_NAME:latest
 
       - name: Wait for container to start
         run: sleep 10
@@ -76,50 +73,52 @@ jobs:
       - name: Test health endpoint
         run: curl -f http://localhost:8080/health
 
-      - name: Stop and remove container
+      - name: Stop and remove test container
         run: |
           docker stop workprofile_test
           docker rm workprofile_test
 
-      - name: Push Docker images
-        if: ${{ success() == true }}
+      - name: Push Docker images to GitHub Container Registry
+        if: success()
         run: |
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$IMAGE_TAG
 
+  # -------------------------
+  # Stage 3: 3-Tier Docker Compose Test
+  # -------------------------
   stage3-docker-compose:
-  needs: build-test-publish
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    needs: build-test-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Start 3-tier stack
-      run: |
-        cd docker-compose
-        docker-compose up -d
-        # מחכים עד שהשירותים רצים
-        sleep 30
-        docker ps
+      - name: Start 3-tier stack
+        run: |
+          cd docker-compose
+          docker-compose up -d
+          sleep 30
+          docker ps
 
-    - name: Wait for service
-      run: |
-        for i in {1..10}; do
-          curl -f http://localhost:8080/ && break
-          echo "Waiting for service..."
-          sleep 5
-        done
+      - name: Wait for service
+        run: |
+          for i in {1..10}; do
+            curl -f http://localhost:8080/ && break
+            echo "Waiting for service..."
+            sleep 5
+          done
 
-    - name: Test root endpoint
-      run: curl -f http://localhost:8080/
+      - name: Test root endpoint
+        run: curl -f http://localhost:8080/
 
-    - name: Test health endpoint
-      run: curl -f http://localhost:8080/health
+      - name: Test health endpoint
+        run: curl -f http://localhost:8080/health
 
-    - name: Test database connectivity
-      run: curl -s http://localhost:8080/health | grep "Database: Healthy"
+      - name: Test database connectivity
+        run: curl -s http://localhost:8080/health | grep "Database: Healthy"
 
-    - name: Shutdown 3-tier stack
-      run: |
-        cd docker-compose
-        docker-compose down -v
+      - name: Shutdown 3-tier stack
+        run: |
+          cd docker-compose
+          docker-compose down -v
