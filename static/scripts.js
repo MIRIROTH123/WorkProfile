@@ -62,60 +62,60 @@ document.getElementById('addPersonForm').addEventListener('submit', function (ev
             workplace,
             address
         })
-    }).then(res => {
-        if (res.status === 200) {
-            // Add new person to the DOM
-            res.json().then(id => {
-                // Create new person div
-                const newPerson = document.createElement('div');
-                newPerson.className = "person";
-                newPerson.onclick = function () {
-                    handlePersonClick(this, id);
-                };
+    }).then(res => res.json())
+      .then(data => {
+          const newId = data.id; // כאן אנו משתמשים ב-ID שהשרת מחזיר
+          if (!newId) {
+              alert("Something went wrong");
+              return;
+          }
 
-                // Create new person name h3
-                const newPersonName = document.createElement('h3');
-                newPersonName.innerHTML = `${firstName} ${lastName}`;
+          // Create new person div
+          const newPerson = document.createElement('div');
+          newPerson.className = "person";
+          newPerson.onclick = function () {
+              handlePersonClick(this, newId);
+          };
 
-                // Create new person age p
-                const newPersonAge = document.createElement('p');
-                newPersonAge.innerHTML = `Age: ${age}`;
+          // Create new person name h3
+          const newPersonName = document.createElement('h3');
+          newPersonName.innerHTML = `${firstName} ${lastName}`;
 
-                // Create new person address p
-                const newPersonAddress = document.createElement('p');
-                newPersonAddress.innerHTML = `Address: ${workplace}`;
+          // Create new person age p
+          const newPersonAge = document.createElement('p');
+          newPersonAge.innerHTML = `Age: ${age}`;
 
-                // Create new person workplace div
-                const newPersonWorkplace = document.createElement('p');
-                newPersonWorkplace.innerHTML = `Workplace: ${address}`;
+          // Create new person address p
+          const newPersonAddress = document.createElement('p');
+          newPersonAddress.innerHTML = `Address: ${address}`;
 
-                // Append all new divs to the new person div
-                newPerson.appendChild(newPersonName);
-                newPerson.appendChild(newPersonAge);
-                newPerson.appendChild(newPersonAddress);
-                newPerson.appendChild(newPersonWorkplace);
+          // Create new person workplace p
+          const newPersonWorkplace = document.createElement('p');
+          newPersonWorkplace.innerHTML = `Workplace: ${workplace}`;
 
-                // Get the tableContainer div
-                const people = document.getElementById('tableContainer');
+          // Append all new divs to the new person div
+          newPerson.appendChild(newPersonName);
+          newPerson.appendChild(newPersonAge);
+          newPerson.appendChild(newPersonAddress);
+          newPerson.appendChild(newPersonWorkplace);
 
-                // get the last child of the tableContainer div
-                let parent = people.children[people.children.length - 1];
+          // Get the tableContainer div
+          const people = document.getElementById('tableContainer');
 
-                // check if parent has 3 children. If it does, create a new one, otherwise use the existing one
-                if (parent.childElementCount === 3) {
-                    parent = document.createElement('div');
-                    parent.className = "container";
-                    people.appendChild(parent);
-                }
+          // get the last child of the tableContainer div
+          let parent = people.children[people.children.length - 1];
 
-                // Append new person div to the parent div
-                parent.appendChild(newPerson);
-            });
-        } else {
-            alert("Something went wrong");
-        }
-    })
-        .catch(err => console.log(err));
+          // check if parent has 3 children. If it does, create a new one
+          if (!parent || parent.childElementCount === 3) {
+              parent = document.createElement('div');
+              parent.className = "container";
+              people.appendChild(parent);
+          }
+
+          // Append new person div to the parent div
+          parent.appendChild(newPerson);
+      })
+      .catch(err => console.log(err));
 
     closeModal();
 });

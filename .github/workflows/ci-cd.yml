@@ -10,7 +10,31 @@ on:
       - main
 
 jobs:
+  # -------------------------
+  # Stage 1: Validation
+  # -------------------------
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Validate required files
+        run: |
+          test -f Dockerfile && echo "✓ Dockerfile exists"
+          test -f requirements.txt && echo "✓ requirements.txt exists"
+          test -f app.py && echo "✓ app.py exists"
+
+      - name: Validate Python packages
+        run: |
+          python3 -c "import flask; print('✓ Flask import successful')"
+          python3 -c "import mysql.connector; print('✓ MySQL connector import successful')"
+
+  # -------------------------
+  # Stage 2: Build & Single Container Test
+  # -------------------------
   build-test-publish:
+    needs: validation    # מחכה ש־Validation יעבור
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/workprofile-app
@@ -51,3 +75,28 @@ jobs:
         run: |
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$IMAGE_TAG
+  stage3-docker-compose:
+    needs: build-test-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Start 3-tier stack
+        run: |
+          cd docker-compose
+          docker-compose up -d
+          sleep 60
+
+      - name: Test root endpoint '/'
+        run: curl -f http://localhost:8080/
+
+      - name: Test health endpoint '/health'
+        run: curl -f http://localhost:8080/health
+
+      - name: Test database connectivity in health
+        run: curl -s http://localhost:8080/health | grep "Database: Healthy"
+
+      - name: Shutdown 3-tier stack
+        run: |
+          docker-compose down -v

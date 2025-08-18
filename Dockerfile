@@ -19,6 +19,8 @@ COPY app.py .
 COPY dbcontext.py .
 COPY person.py .
 
+RUN pip install --no-cache-dir mysql-connector-python
+
 # שלב הריצה - תמונה קטנה מבוססת Alpine
 FROM python:3.9-alpine
 
