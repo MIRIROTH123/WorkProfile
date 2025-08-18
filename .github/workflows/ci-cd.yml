@@ -19,6 +19,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # הגרסה שאת משתמשת בה
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Validate required files
         run: |
           test -f Dockerfile && echo "✓ Dockerfile exists"
@@ -60,4 +68,47 @@ jobs:
         run: sleep 10
 
       - name: Test root endpoint '/'
-        run: curl -f http://localhost:8080
+        run: curl -f http://localhost:8080/
+
+      - name: Test health endpoint '/health'
+        run: curl -f http://localhost:8080/health
+
+      - name: Stop and remove test container
+        run: |
+          docker stop workprofile_test
+          docker rm workprofile_test
+
+      - name: Push Docker images to GitHub Container Registry
+        if: success()
+        run: |
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$IMAGE_TAG
+
+  # -------------------------
+  # Stage 3: 3-Tier Docker Compose Test
+  # -------------------------
+  stage3-docker-compose:
+    needs: build-test-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Start 3-tier stack
+        run: |
+          cd docker-compose
+          docker-compose up -d
+          sleep 60
+
+      - name: Test root endpoint '/'
+        run: curl -f http://localhost:8080/
+
+      - name: Test health endpoint '/health'
+        run: curl -f http://localhost:8080/health
+
+      - name: Test database connectivity in health
+        run: curl -s http://localhost:8080/health | grep "Database: Healthy"
+
+      - name: Shutdown 3-tier stack
+        run: |
+          docker-compose down -v
