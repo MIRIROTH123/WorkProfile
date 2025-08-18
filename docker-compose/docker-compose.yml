@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mysql:
     image: mysql:8
@@ -13,10 +15,10 @@ services:
     ports:
       - "3308:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 10
-      timeout: 5s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 10s
+      retries: 20
+      timeout: 10s
 
   workprofile:
     build: ../
@@ -31,13 +33,13 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    restart: always   # מוודא שהקונטיינר ינסה שוב אם נופל
+    restart: always
 
   nginx:
     image: nginx:latest
     container_name: workprofile-nginx
     ports:
-      - "8081:8080"  # חיבור חיצוני ל־8081
+      - "8081:8080"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -46,3 +48,4 @@ services:
 
 volumes:
   mysql-data:
+
