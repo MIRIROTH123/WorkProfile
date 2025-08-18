@@ -87,7 +87,7 @@ jobs:
   # -------------------------
   # Stage 3: 3-Tier Docker Compose Test
   # -------------------------
-  stage3-docker-compose:
+    stage3-docker-compose:
     needs: build-test-publish
     runs-on: ubuntu-latest
     steps:
