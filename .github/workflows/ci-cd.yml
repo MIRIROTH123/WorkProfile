@@ -22,7 +22,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # הגרסה שאת משתמשת בה
+          python-version: '3.11'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -111,4 +111,5 @@ jobs:
 
       - name: Shutdown 3-tier stack
         run: |
+          cd docker-compose
           docker-compose down -v
