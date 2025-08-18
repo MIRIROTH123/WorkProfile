@@ -87,30 +87,36 @@ jobs:
   # -------------------------
   # Stage 3: 3-Tier Docker Compose Test
   # -------------------------
-  stage3-docker-compose:
-    needs: build-test-publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  stage3-docker-compose: 
+   needs: build-test-publish
+   runs-on: ubuntu-latest
+   דsteps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Start 3-tier stack
-        run: |
-          cd docker-compose
-          docker-compose up -d
-          sleep 60
+    - name: Install Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
 
-      - name: Test root endpoint
-        run: curl -f http://localhost:8080/
+    - name: Start 3-tier stack
+      run: |
+        cd docker-compose
+        docker compose up -d
+        echo "Waiting for services to start..."
+        sleep 30
 
-      - name: Test health endpoint
-        run: curl -f http://localhost:8080/health
+    - name: Test root endpoint
+      run: curl -f http://localhost:8080/
 
-      - name: Test database connectivity
-        run: |
-          curl -s http://localhost:8080/health | grep "Database: Healthy"
+    - name: Test health endpoint
+      run: curl -f http://localhost:8080/health
 
-      - name: Shutdown 3-tier stack
-        run: |
-          cd docker-compose
-          docker-compose down -v
+    - name: Test database connectivity
+      run: curl -s http://localhost:8080/health | grep "Database: Healthy"
+
+    - name: Shutdown 3-tier stack
+      run: |
+        cd docker-compose
+        docker compose down -v
+
