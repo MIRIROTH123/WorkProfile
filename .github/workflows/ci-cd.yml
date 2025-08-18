@@ -98,16 +98,7 @@ jobs:
         run: |
           cd docker-compose
           docker-compose up -d
-          sleep 30
-          docker ps
-
-      - name: Wait for service
-        run: |
-          for i in {1..10}; do
-            curl -f http://localhost:8080/ && break
-            echo "Waiting for service..."
-            sleep 5
-          done
+          sleep 60
 
       - name: Test root endpoint
         run: curl -f http://localhost:8080/
@@ -116,7 +107,8 @@ jobs:
         run: curl -f http://localhost:8080/health
 
       - name: Test database connectivity
-        run: curl -s http://localhost:8080/health | grep "Database: Healthy"
+        run: |
+          curl -s http://localhost:8080/health | grep "Database: Healthy"
 
       - name: Shutdown 3-tier stack
         run: |
