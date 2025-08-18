@@ -128,14 +128,11 @@ jobs:
       run: |
         cd docker-compose
         docker compose down -v
-        
 
-
-
-  stage4-publish:
-  needs: stage3-docker-compose
-  runs-on: ubuntu-latest
-  steps:
+  stage4-publish:   # ← שם ה-job, יוצג כ-"Stage 4: Publish"
+   needs: stage3-docker-compose
+   runs-on: ubuntu-latest
+   steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
@@ -146,6 +143,9 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.CR_PAT }}
 
+
+
+
     - name: Publish
       uses: docker/build-push-action@v4
       with:
@@ -154,3 +154,4 @@ jobs:
         tags: |
           ghcr.io/${{ github.repository_owner }}/workprofile:latest
           ghcr.io/${{ github.repository_owner }}/workprofile:${{ github.sha }}
+
