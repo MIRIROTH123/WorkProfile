@@ -155,3 +155,23 @@ jobs:
           ghcr.io/${{ github.repository_owner }}/workprofile:latest
           ghcr.io/${{ github.repository_owner }}/workprofile:${{ github.sha }}
 
+deploy-to-k8s:
+  needs: build-test-publish
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+    - name: Apply Kubernetes manifests
+      env:
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      run: kubectl apply -f k8s/
+
+    - name: Check rollout status
+      run: kubectl rollout status deployment/workprofile
