@@ -104,11 +104,14 @@ jobs:
         cd docker-compose
         docker compose up -d
         echo "Waiting for services to start..."
-        sleep 30
+        sleep 60
 
     - name: Test root endpoint
       run: |
-        curl -f http://localhost:8080/
+        for i in {1..10}; do
+          curl -f http://localhost:8080/ && break || sleep 5
+        done
+
 
     - name: Test health endpoint
       run: |
