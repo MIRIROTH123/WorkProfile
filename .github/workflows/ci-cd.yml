@@ -128,4 +128,13 @@ jobs:
       run: |
         cd docker-compose
         docker compose down -v
+        
+    - name: Publish
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/workprofile:latest
+          ghcr.io/${{ github.repository_owner }}/workprofile:${{ github.sha }}
 
