@@ -20,6 +20,7 @@ env/
 Include/
 Lib/
 Scripts/
+docker-compose/DEMO
 
 # General
 .devcontainer/
