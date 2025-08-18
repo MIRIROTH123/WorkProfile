@@ -128,7 +128,7 @@ jobs:
       run: |
         cd docker-compose
         docker compose down -v
-        
+   stage4-Publish:   
     - name: Publish
       uses: docker/build-push-action@v4
       with:
