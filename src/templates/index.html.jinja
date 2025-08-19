@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WorkProfile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>WorkProfile App</h1>
+
+    <!-- רשימת אנשים -->
+    <div id="people-list">
+        {% for person in data %}
+            <div class="person" data-id="{{ person.id }}">
+                <span>{{ person.firstName }} {{ person.lastName }}</span>
+                <button class="delete-btn">Delete</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- טופס הוספה -->
+    <form id="add-person-form">
+        <input type="text" name="firstName" placeholder="First Name" required>
+        <input type="text" name="lastName" placeholder="Last Name" required>
+        <input type="number" name="age" placeholder="Age" required>
+        <input type="text" name="address" placeholder="Address">
+        <input type="text" name="workplace" placeholder="Workplace">
+        <button type="submit">Add Person</button>
+    </form>
+
+    <!-- הגדרת משתנה backend ל-JS -->
+    <script>
+        const backend = "{{ backend }}";  // Flask מחליף את זה בכתובת אמיתית
+    </script>
+
+    <!-- קובץ JS -->
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>
